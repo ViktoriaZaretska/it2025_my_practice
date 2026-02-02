@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>База військових підрозділів</title>
+  <style>
+    /* --- Вбудовані стилі --- */
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      background: #f5f6fa;
+      margin: 0;
+      color: #222;
+    }
+
+    h1, h2, h3 {
+      margin: 0.5em 0;
+    }
+
+    p {
+      margin: 0.25em 0;
+    }
+
+    header.hero {
+      text-align: center;
+      padding: 2rem 1rem;
+      background: #1b1b2f;
+      color: #fff;
+    }
+
+    header.hero .eyebrow {
+      font-weight: 500;
+      color: #a0a0c0;
+    }
+
+    section.units {
+      padding: 2rem 1rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .filters, .search-panel {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .filters select, .search-panel input, .search-panel select, .search-panel button {
+      padding: 0.5rem;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+
+    .search-panel button {
+      background: #007bff;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    .search-panel button:hover {
+      background: #0056b3;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .card {
+      padding: 1rem;
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    .card h3 {
+      margin-bottom: 0.5rem;
+    }
+
+    .tone-green { border-left: 5px solid #28a745; }
+    .tone-blue { border-left: 5px solid #007bff; }
+    .tone-amber { border-left: 5px solid #ffc107; }
+    .tone-red { border-left: 5px solid #dc3545; }
+    .tone-iron { border-left: 5px solid #6c757d; }
+
+    footer.footer {
+      text-align: center;
+      padding: 2rem 1rem;
+      background: #1b1b2f;
+      color: #fff;
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <p class="eyebrow">Польовий аналітик · Військові підрозділи</p>
+    <h1>База даних підрозділів</h1>
+    <p class="lede">
+      Огляд підрозділів: тип, корпус, чисельність, статус та місцезнаходження. Для швидкої аналітики та оцінки ресурсів.
+    </p>
+  </header>
+
+  <main>
+    <section class="units">
+      <div class="section-head">
+        <p class="eyebrow">Підрозділи</p>
+        <h2>Список всіх одиниць</h2>
+        <p class="hint">Відображаються актуальні дані станом на останній звіт.</p>
+      </div>
+
+      <div class="filters">
+        <select id="filter-corps">
+          <option value="all">Всі корпуси</option>
+          <option value="ОК Північ">ОК Північ</option>
+          <option value="ОК Схід">ОК Схід</option>
+          <option value="ОК Південь">ОК Південь</option>
+          <option value="ОК Захід">ОК Захід</option>
+        </select>
+        <select id="filter-status">
+          <option value="all">Всі статуси</option>
+          <option value="виконує бойове завдання">виконує бойове завдання</option>
+          <option value="резерв">резерв</option>
+          <option value="веде вогневу підтримку">веде вогневу підтримку</option>
+          <option value="активні бойові дії">активні бойові дії</option>
+          <option value="оборона">оборона</option>
+        </select>
+      </div>
+
+      <div class="search-panel">
+        <input type="text" id="search-input" placeholder="Введіть назву підрозділу..." />
+        <select id="search-method">
+          <option value="linear">Лінійний пошук</option>
+          <option value="binary">Бінарний пошук</option>
+        </select>
+        <button id="btn-search">Знайти</button>
+      </div>
+
+      <div class="card-grid"></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div>
+      <p class="eyebrow">Польовий аналітик</p>
+      <h4>Дані актуальні станом на останній звіт</h4>
+    </div>
+  </footer>
+
+  <script>
+    const units = [
+      { unit_id: 101, name: "1 окрема механізована бригада", type: "механізована", corps: "ОК Північ", personnel: 3200, status: "виконує бойове завдання", location: "Сіверський напрямок", last_report: "2026-01-22" },
+      { unit_id: 102, name: "25 окрема десантно-штурмова бригада", type: "десантно-штурмова", corps: "ОК Схід", personnel: 2800, status: "резерв", location: "Краматорськ", last_report: "2026-01-22" },
+      { unit_id: 103, name: "40 артилерійська бригада", type: "артилерійська", corps: "ОК Південь", personnel: 2100, status: "веде вогневу підтримку", location: "Запорізький напрямок", last_report: "2026-01-21" },
+      { unit_id: 104, name: "92 окрема штурмова бригада", type: "штурмова", corps: "ОК Схід", personnel: 3500, status: "активні бойові дії", location: "Бахмутський напрямок", last_report: "2026-01-22" },
+      { unit_id: 105, name: "128 окрема гірсько-штурмова бригада", type: "гірсько-штурмова", corps: "ОК Захід", personnel: 3000, status: "оборона", location: "Херсонський напрямок", last_report: "2026-01-20" }
+    ];
+
+    function getTone(type) {
+      switch(type) {
+        case "механізована": return "tone-green";
+        case "десантно-штурмова": return "tone-blue";
+        case "артилерійська": return "tone-amber";
+        case "штурмова": return "tone-red";
+        case "гірсько-штурмова": return "tone-iron";
+        default: return "tone-iron";
+      }
+    }
+
+    function createCard(unit) {
+      const card = document.createElement("article");
+      card.className = "card " + getTone(unit.type);
+      card.innerHTML = `
+        <h3>${unit.name}</h3>
+        <p><strong>Тип:</strong> ${unit.type}</p>
+        <p><strong>Корпус:</strong> ${unit.corps}</p>
+        <p><strong>Чисельність:</strong> ${unit.personnel}</p>
+        <p><strong>Статус:</strong> ${unit.status}</p>
+        <p><strong>Локація:</strong> ${unit.location}</p>
+        <p><strong>Останній звіт:</strong> ${unit.last_report}</p>
+      `;
+      return card;
+    }
+
+    function renderUnits(filtered = units) {
+      const grid = document.querySelector(".card-grid");
+      grid.innerHTML = "";
+      filtered.forEach(unit => grid.appendChild(createCard(unit)));
+    }
+
+    function filterUnits() {
+      const corpsFilter = document.getElementById("filter-corps").value;
+      const statusFilter = document.getElementById("filter-status").value;
+
+      const filtered = units.filter(u => {
+        return (corpsFilter === "all" || u.corps === corpsFilter) &&
+               (statusFilter === "all" || u.status === statusFilter);
+      });
+
+      renderUnits(filtered);
+    }
+
+    function linearSearch(query) {
+      query = query.toLowerCase();
+      return units.filter(u => u.name.toLowerCase().includes(query));
+    }
+
+    function binarySearch(query) {
+      query = query.toLowerCase();
+      const sorted = [...units].sort((a, b) => a.name.localeCompare(b.name));
+      let left = 0, right = sorted.length - 1;
+      const results = [];
+      while (left <= right) {
+        const mid = Math.floor((left + right) / 2);
+        const midName = sorted[mid].name.toLowerCase();
+        if (midName.includes(query)) {
+          let i = mid;
+          while (i >= 0 && sorted[i].name.toLowerCase().includes(query)) { results.push(sorted[i]); i--; }
+          i = mid + 1;
+          while (i < sorted.length && sorted[i].name.toLowerCase().includes(query)) { results.push(sorted[i]); i++; }
+          break;
+        } else if (midName < query) {
+          left = mid + 1;
+        } else {
+          right = mid - 1;
+        }
+      }
+      return results;
+    }
+
+    document.getElementById("btn-search").addEventListener("click", () => {
+      const query = document.getElementById("search-input").value.trim();
+      const method = document.getElementById("search-method").value;
+      if (!query) {
+        renderUnits();
+        return;
+      }
+      const results = method === "linear" ? linearSearch(query) : binarySearch(query);
+      renderUnits(results);
+    });
+
+    document.addEventListener("DOMContentLoaded", () => {
+      document.getElementById("filter-corps").addEventListener("change", filterUnits);
+      document.getElementById("filter-status").addEventListener("change", filterUnits);
+      renderUnits();
+    });
+  </script>
+</body>
+</html>
+  

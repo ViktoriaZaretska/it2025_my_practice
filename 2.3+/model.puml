@@ -1,0 +1,34 @@
+@startuml
+class Сенсор {
+  sensor_id
+  type
+  location
+  status
+}
+
+class Інцидент {
+  incident_id
+  timestamp
+  severity
+  status
+}
+
+class Оператор {
+  operator_id
+  name
+  role
+  availability
+}
+
+class Ресурс {
+  resource_id
+  type
+  location
+  status
+}
+
+Сенсор "1" --> "0..*" Інцидент : генерує
+Оператор "1" --> "0..*" Сенсор : контролює
+Оператор "1" --> "0..*" Інцидент : обробляє
+Інцидент "1" --> "1..*" Ресурс : використовує
+@enduml
